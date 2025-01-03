@@ -1,13 +1,17 @@
-import { Router } from "express";
+import express from "express";
+import { addStory, getTeacherStories } from "../controllers/storyController.js";
+import { isAuthenticated } from "../middleware/auth.js";
+import { handleVoiceChat } from "../controllers/voiceToTextController.js";
 import multer from "multer";
-import { processImage } from "../controllers/storyController.js";
 
-// Multer setup for file uploads
 const upload = multer({ dest: "uploads/" });
+const router = express.Router();
 
-const router = Router();
+// Add a story
+router.post("/add", isAuthenticated, addStory);
 
-// Route to process image and generate audio story
-router.post("/process-image", upload.single("file"), processImage);
+// Get all stories by the logged-in teacher
+router.get("/my-stories", isAuthenticated, getTeacherStories);
+router.post("/voice", upload.single("audio"), handleVoiceChat);
 
 export default router;

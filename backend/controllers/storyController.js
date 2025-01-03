@@ -1,32 +1,34 @@
-import { imageToText, textToVoice } from "../utils/huggingFaceUtils.js";
-import { generateStory } from "../utils/storyGenerator.js";
-import fs from "fs";
+import { catchAsyncErrors } from "../middleware/catchAsyncError.js";
+import { Story } from "../models/storySchema.js";
+import ErrorHandler from "../middleware/error.js";
 
-/**
- * Process image to generate a story and convert it to voice.
- * @param {Object} req - Express request object.
- * @param {Object} res - Express response object.
- */
-export async function processImage(req, res) {
-  try {
-    const filePath = req.file.path;
-    const apiKey = process.env.HUGGING_FACE_API_KEY;
+// Add a new story
+export const addStory = catchAsyncErrors(async (req, res, next) => {
+  const { title, content } = req.body;
 
-    // Convert image to text
-    const imageBuffer = fs.readFileSync(filePath);
-    const extractedText = await imageToText(imageBuffer, apiKey);
-
-    // Generate a story from the extracted text
-    const story = await generateStory(extractedText);
-
-    // Convert story to voice
-    const audioBuffer = await textToVoice(story, apiKey);
-
-    // Send the audio file as a response
-    res.set("Content-Type", "audio/mpeg");
-    res.send(audioBuffer);
-  } catch (error) {
-    console.error("Error processing image:", error);
-    res.status(500).json({ success: false, error: error.message });
+  if (!title || !content) {
+    return next(new ErrorHandler("Please provide all required fields", 400));
   }
-}
+
+  const story = await Story.create({
+    title,
+    content,
+    author: req.user._id,
+  });
+
+  res.status(201).json({
+    success: true,
+    message: "Story created successfully",
+    story,
+  });
+});
+
+// Get stories by a teacher
+export const getTeacherStories = catchAsyncErrors(async (req, res, next) => {
+  const stories = await Story.find({ author: req.user._id }).sort({ createdAt: -1 });
+
+  res.status(200).json({
+    success: true,
+    stories,
+  });
+});
