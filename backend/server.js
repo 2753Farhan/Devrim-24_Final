@@ -11,7 +11,13 @@ config();
 connectDB();
 
 const app = express();
-app.use(cors());
+app.use(
+    cors({
+      origin: [process.env.FRONTEND_URL],
+      method: ["GET", "POST", "DELETE", "PUT"],
+      credentials: true,
+    })
+  );
 app.use(json());
 app.use(cookieParser());
 
