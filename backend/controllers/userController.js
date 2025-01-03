@@ -6,6 +6,7 @@ import nodemailer from "nodemailer";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
 
+// In userController.js
 export const register = catchAsyncErrors(async (req, res, next) => {
   const { name, email, phone, password, role } = req.body;
   if (!name || !email || !phone || !password || !role) {
@@ -13,7 +14,10 @@ export const register = catchAsyncErrors(async (req, res, next) => {
   }
   const isEmail = await User.findOne({ email });
   if (isEmail) {
-    return next(new ErrorHandler("Email already registered!"));
+    return res.status(400).json({
+      success: false,
+      message: "Email already registered!"
+    });
   }
   const user = await User.create({
     name,
