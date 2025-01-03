@@ -114,7 +114,7 @@ graph TD
 ## **Tech Stack**
 - **Frontend**: React.js
 - **Backend**: Node.js + Express
-- **Database**: MongoDB
+- **Database**: MongoDB,Cloudinary
 - **AI Models**:
   - Hugging Face MarianMT (Translation)
   - Hugging Face Conversational Models (Chatbot)
@@ -210,46 +210,29 @@ The chatbot leverages:
 - Continuous Learning from Interactions
 
 ### Authentication Flow
-graph TD
-  %% User Actions
-  subgraph User Actions
-    A[User Inputs] -->|Register| B(Register Endpoint)
-    A -->|Login| C(Login Endpoint)
-    A -->|Forgot Password| D(Forgot Password Endpoint)
-    A -->|Reset Password| E(Reset Password Endpoint)
-    A -->|Logout| F(Logout Endpoint)
-    A -->|Get User Details| G(Get User Details Endpoint)
-    A -->|Total Teachers| H(Total Teachers Endpoint)
-    A -->|Total Students| I(Total Students Endpoint)
-  end
+```mermaid
+sequenceDiagram
+    actor User
+    participant LP as Login Page
+    participant API as Backend API
+    participant DB as Database
+    
+    User->>LP: Access Login/Register
+    LP->>API: Submit Credentials
+    API->>DB: Verify User Data
+    DB->>API: Return User Status
+    API->>LP: Send Auth Token
+    LP->>User: Grant Access
 
-  %% API Layer
-  subgraph API Layer
-    B --> J[Register Controller]
-    C --> K[Login Controller]
-    F --> L[Logout Controller]
-    D --> M[Forgot Password Controller]
-    E --> N[Reset Password Controller]
-    G --> O[Get User Controller]
-    H --> P[Total Teachers Controller]
-    I --> Q[Total Students Controller]
-  end
+    rect rgb(240, 240, 240)
+        Note over LP,API: Secured with JWT Tokens<br/>and Role-based Access
+    end
+```
 
-  %% Database Layer
-  subgraph Database Layer
-    R[User Schema]
-  end
-
-  %% Relationships
-  J -->|Write User Data| R
-  K -->|Find User by Email| R
-  L -->|Expire Token| R
-  M -->|Find User by Email| R
-  N -->|Update User Password| R
-  O -->|Retrieve User by Token| R
-  P -->|Count Users with Role=Teacher| R
-  Q -->|Count Users with Role=Student| R
-
+Key Security Features:
+- JWT Tokens for secure authentication
+- Role-based Access Control
+- Session Management and Monitoring
 
 ### Content Management
 ```mermaid
@@ -390,183 +373,9 @@ https://api.banglish2bangla.com/v1
 ```
 
 ### Authentication
-# **Banglish to Bangla App - API Documentation**
-
-## **Table of Contents**
-1. [Base URL](#base-url)
-2. [Endpoints](#endpoints)
-    - [Register User](#1-register-user)
-    - [Login User](#2-login-user)
-    - [Logout User](#3-logout-user)
-    - [Get User Details](#4-get-user-details)
-    - [Forgot Password](#5-forgot-password)
-    - [Reset Password](#6-reset-password)
-    - [Get Total Teachers](#7-get-total-teachers)
-    - [Get Total Students](#8-get-total-students)
-3. [Error Response Format](#error-response-format)
-4. [Authentication](#authentication)
-5. [Status Codes](#status-codes)
-
----
-
-## **Base URL**
+All API endpoints require a JWT token in the Authorization header:
 ```
-http://localhost:5000/api
-```
-
----
-
-## **Endpoints**
-
-### 1. **Register User**
-#### `POST /register`
-Registers a new user.
-
-**Request Body:**
-```json
-{
-  "name": "John Doe",
-  "email": "john.doe@example.com",
-  "phone": "1234567890",
-  "password": "securePassword",
-  "role": "Teacher"
-}
-```
-
-**Response:**
-```json
-{
-  "success": true,
-  "message": "User Registered!",
-  "token": "jwt_token_here"
-}
-```
-
-### 2. **Login User**
-#### `POST /login`
-Authenticates a user and provides a JWT token.
-
-**Request Body:**
-```json
-{
-  "email": "john.doe@example.com",
-  "password": "securePassword",
-  "role": "Teacher"
-}
-```
-
-**Response:**
-```json
-{
-  "success": true,
-  "message": "User Logged In!",
-  "token": "jwt_token_here"
-}
-```
-
-**Errors:**
-- 400 Bad Request: Missing or invalid credentials
-- 404 Not Found: User with provided email and role not found
-
-### 3. **Logout User**
-#### `POST /logout`
-Logs the user out by expiring the JWT token.
-
-**Response:**
-```json
-{
-  "success": true,
-  "message": "Logged Out Successfully."
-}
-```
-
-
-### 4. **Forgot Password**
-#### `POST /forgot-password`
-Generates a password reset link and sends it to the user's email.
-
-**Request Body:**
-```json
-{
-  "email": "john.doe@example.com"
-}
-```
-
-**Response:**
-```json
-{
-  "Status": "Success",
-  "message": "Check your mail"
-}
-```
-
-**Errors:**
-- 404 Not Found: User with the provided email does not exist
-- 500 Internal Server Error: Failed to send the email
-
-### 5. **Reset Password**
-#### `POST /reset-password/:id/:token`
-Resets the user's password.
-
-**Request Parameters:**
-- `id`: User ID
-- `token`: JWT token from the password reset email
-
-**Request Body:**
-```json
-{
-  "password": "newSecurePassword"
-}
-```
-
-**Response:**
-```json
-{
-  "Status": "Success",
-  "message": "Password reset successfully"
-}
-```
-
-**Errors:**
-- 400 Bad Request: Invalid or expired token, or missing password
-- 404 Not Found: User not found
-
-
-## **Error Response Format**
-All errors return a consistent format:
-
-```json
-{
-  "success": false,
-  "message": "Error message describing the issue",
-  "errorCode": "ERROR_CODE"
-}
-```
-
-**Common Error Codes:**
-- 400: Bad Request
-- 401: Unauthorized
-- 404: Not Found
-- 500: Internal Server Error
-
-## **Authentication**
-All endpoints requiring authentication must include the following header:
-
-```json
-{
-  "Authorization": "Bearer jwt_token_here"
-}
-```
-
-## **Status Codes**
-| Status Code | Description |
-|-------------|-------------|
-| 200 | Success |
-| 201 | Resource Created |
-| 400 | Bad Request |
-| 401 | Unauthorized |
-| 404 | Not Found |
-| 500 | Internal Server Error |
+Authorization: Bearer <your_jwt_token>
 ```
 
 ### Endpoints
