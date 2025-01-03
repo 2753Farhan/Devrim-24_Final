@@ -2,7 +2,7 @@ import { Router } from "express";
 import { upload, handleMulterErrors } from "../middleware/uploadMiddleware.js";
 import { uploadNotes } from "../controllers/notesController.js";
 import { generateQuiz } from "../controllers/quizController.js";
-import { chatWithNotes } from "../controllers/chatController.js";
+// import { chatWithNotes } from "../controllers/chatController.js";
 
 const router = Router();
 
@@ -14,6 +14,6 @@ router.post("/upload", upload.single("file"), handleMulterErrors, uploadNotes);
 router.post("/generate-quiz", generateQuiz);
 
 // Route for querying notes (chat functionality)
-router.post("/chat", chatWithNotes);
+// router.post("/chat", chatWithNotes);
 
 export default router;
