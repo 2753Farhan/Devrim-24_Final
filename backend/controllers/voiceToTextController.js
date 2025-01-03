@@ -129,7 +129,7 @@ export async function handleVoiceChat(req, res) {
     const response = await model.invoke([
       {
         role: "user",
-        content: `Just Convert the banglish  (a mixture of Bengali language written in the English alphabet) to bangla without any extra words: ${transcribedText}`,
+        content: `${transcribedText}`,
       },
     ]);
 

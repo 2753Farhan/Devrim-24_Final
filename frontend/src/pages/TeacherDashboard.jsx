@@ -9,16 +9,17 @@ const TeacherDashboard = () => {
   const [stories, setStories] = useState([]);
   const [isRecording, setIsRecording] = useState(false);
   const [audioBlob, setAudioBlob] = useState(null);
-  const [transcript, setTranscript] = useState('');
+  const [transcript, setTranscript] = useState("");
   const quillRef = useRef(null); // Ref for Quill editor
   const mediaRecorderRef = useRef(null); // Ref for media recorder
 
   // Fetch teacher's stories
   const fetchStories = async () => {
     try {
-      const { data } = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/story/my-stories`, {
-        withCredentials: true,
-      });
+      const { data } = await axios.get(
+        `${import.meta.env.VITE_BACKEND_URL}/api/story/my-stories`,
+        { withCredentials: true }
+      );
       setStories(data.stories);
     } catch (error) {
       toast.error(error.response?.data?.message || "Failed to fetch stories");
@@ -28,30 +29,46 @@ const TeacherDashboard = () => {
   // Handle story submission (from Quill editor or voice-to-text)
   const handleSaveStory = async (e) => {
     e.preventDefault();
-    const content = quillRef.current?.root.innerHTML || transcript; // Use Quill content or transcript from voice
-
-    if (!content.trim()) {
+    const banglishContent = quillRef.current?.root.innerHTML || transcript; // Use Quill content or transcript from voice
+  
+    if (!banglishContent.trim()) {
       toast.error("Content cannot be empty.");
       return;
     }
-
+  
     try {
-      const { data } = await axios.post(
+      // Step 1: Convert Banglish content to Bangla
+      const conversionResponse = await axios.post(
+        `${import.meta.env.VITE_BACKEND_URL}/api/converter/convert`,
+        { banglishText: banglishContent }
+      );
+      const banglaContent = conversionResponse.data.banglaText;
+  
+      // Step 2: Generate title from the Bangla content
+      const titleResponse = await axios.post(
+        `${import.meta.env.VITE_BACKEND_URL}/api/story/generate-title`,
+        { story: banglaContent }
+      );
+      const generatedTitle = titleResponse.data.title;
+  
+      // Step 3: Save the Bangla content and generated title to the database
+      const saveResponse = await axios.post(
         `${import.meta.env.VITE_BACKEND_URL}/api/story/add`,
-        { title, content },
+        { title: generatedTitle, content: banglaContent },
         { withCredentials: true }
       );
-      toast.success(data.message);
+  
+      toast.success(saveResponse.data.message);
       setTitle("");
       quillRef.current.root.innerHTML = ""; // Clear the editor
-      setTranscript(''); // Clear transcript
+      setTranscript(""); // Clear transcript
       fetchStories(); // Refresh the stories list
     } catch (error) {
-      toast.error(error.response?.data?.message || "Failed to add story");
+      console.error("Error processing and saving story:", error);
+      toast.error(error.response?.data?.message || "Failed to process and save story");
     }
   };
-
-  // Handle voice recording
+    // Handle voice recording
   const startRecording = () => {
     setIsRecording(true);
     navigator.mediaDevices
@@ -99,11 +116,16 @@ const TeacherDashboard = () => {
         formData,
         { headers: { "Content-Type": "multipart/form-data" }, withCredentials: true }
       );
+
+      // Log the full response for debugging
+      console.log("Voice transcription response:", data);
+
       setTranscript(data.transcription); // Set the transcription text
-      quillRef.current.root.innerHTML = data.transcription; // Optionally populate the editor with transcribed text
+      quillRef.current.root.innerHTML = data.transcription; // Populate the editor with transcribed text
       toast.success("Voice transcription successful!");
       fetchStories(); // Refresh the stories list
     } catch (error) {
+      console.error("Error transcribing voice:", error);
       toast.error(error.response?.data?.message || "Failed to transcribe voice");
     }
   };
@@ -112,7 +134,13 @@ const TeacherDashboard = () => {
     // Initialize Quill editor
     if (!quillRef.current) {
       const Font = Quill.import("formats/font");
-      Font.whitelist = ["arial", "times-new-roman", "courier", "monospace", "verdana"];
+      Font.whitelist = [
+        "arial",
+        "times-new-roman",
+        "courier",
+        "monospace",
+        "verdana",
+      ];
       Quill.register(Font, true);
 
       const toolbarOptions = [
@@ -144,13 +172,6 @@ const TeacherDashboard = () => {
       {/* Story Writing Section */}
       <form onSubmit={handleSaveStory} className="mb-8">
         <h2 className="text-2xl font-bold mb-4">Write a Story</h2>
-        <input
-          type="text"
-          placeholder="Story Title"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          className="w-full p-2 border rounded mb-4"
-        />
 
         {/* Quill Editor for rich text input */}
         <div
@@ -159,10 +180,7 @@ const TeacherDashboard = () => {
           style={{ height: "300px" }}
         ></div>
 
-        <button
-          type="submit"
-          className="bg-blue-500 text-white p-2 rounded"
-        >
+        <button type="submit" className="bg-blue-500 text-white p-2 rounded">
           Submit Story
         </button>
       </form>
