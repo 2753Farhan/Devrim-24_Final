@@ -19,8 +19,11 @@
    - [Feedback and Continuous Learning](#feedback-and-continuous-learning)
 7. [Project Structure](#project-structure)
 8. [Future Enhancements](#future-enhancements)
-9. [Contributing](#contributing)
-10. [License](#license)
+9. [API Documentation](#api-documentation)
+   - [Translation API](#translation-api)
+   - [Chatbot API](#chatbot-api)
+   - [Content Management API](#content-management-api)
+   - [Search API](#search-api)
 
 ---
 
@@ -618,10 +621,3 @@ const client = new Banglish2Bangla('your_api_key');
 const result = await client.translate('ami tomake valobashi');
 console.log(result.translated_text);
 ```
-
-## **License**
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
-
----
-
-For questions or support, contact us at: support@banglish2bangla.com
