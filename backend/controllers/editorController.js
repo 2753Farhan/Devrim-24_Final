@@ -1,13 +1,20 @@
-import { Story } from "../models/story.js"; // Use a named import
+import { Story } from "../models/story.js";
 
-// Define and export the createStory function
 export const createStory = async (req, res) => {
   try {
-    const { title, content } = req.body;
-    const story = new Story({ title, content });
+    console.log("Request body:", req.body); // Log the incoming request
+    const { content } = req.body;
+
+    if (!content || content.trim() === "") {
+      return res.status(400).json({ error: "Content is required" });
+    }
+
+    const story = new Story({ content });
     await story.save();
+
     res.status(201).json({ message: "Story saved successfully", story });
   } catch (error) {
-    res.status(500).json({ error: "Failed to save story" });
+    console.error("Error saving story:", error); // Log any errors
+    res.status(500).json({ error: "Internal server error" });
   }
 };
