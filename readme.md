@@ -113,8 +113,8 @@ graph TD
 
 ## **Tech Stack**
 - **Frontend**: React.js
-- **Backend**: Node.js + Express
-- **Database**: MongoDB
+- **Backend**: Node.js & Express
+- **Database**: MongoDB, Cloudinary
 - **AI Models**:
   - Hugging Face MarianMT (Translation)
   - Hugging Face Conversational Models (Chatbot)
