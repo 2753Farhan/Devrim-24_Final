@@ -362,6 +362,263 @@ banglish-to-bangla/
 
 ---
 
+## **API Documentation**
+
+### Base URL
+```
+https://api.banglish2bangla.com/v1
+```
+
+### Authentication
+All API endpoints require a JWT token in the Authorization header:
+```
+Authorization: Bearer <your_jwt_token>
+```
+
+### Endpoints
+
+#### Translation API
+
+##### 1. Translate Text
+```http
+POST /translate
+```
+
+Request Body:
+```json
+{
+  "text": "ami tomake valobashi",
+  "source": "banglish",
+  "target": "bangla"
+}
+```
+
+Response:
+```json
+{
+  "status": "success",
+  "data": {
+    "translated_text": "আমি তোমাকে ভালোবাসি",
+    "confidence_score": 0.98
+  }
+}
+```
+
+##### 2. Batch Translation
+```http
+POST /translate/batch
+```
+
+Request Body:
+```json
+{
+  "texts": [
+    "ami tomake valobashi",
+    "tumi kemon acho"
+  ],
+  "source": "banglish",
+  "target": "bangla"
+}
+```
+
+Response:
+```json
+{
+  "status": "success",
+  "data": {
+    "translations": [
+      {
+        "original": "ami tomake valobashi",
+        "translated": "আমি তোমাকে ভালোবাসি",
+        "confidence_score": 0.98
+      },
+      {
+        "original": "tumi kemon acho",
+        "translated": "তুমি কেমন আছো",
+        "confidence_score": 0.97
+      }
+    ]
+  }
+}
+```
+
+#### Chatbot API
+
+##### 1. Send Message
+```http
+POST /chat/message
+```
+
+Request Body:
+```json
+{
+  "message": "What is the weather today?",
+  "language": "banglish",
+  "session_id": "user_123_session"
+}
+```
+
+Response:
+```json
+{
+  "status": "success",
+  "data": {
+    "response": "I apologize, but I don't have access to real-time weather data. You can check your local weather service for accurate information.",
+    "language": "banglish",
+    "context_maintained": true
+  }
+}
+```
+
+#### Content Management API
+
+##### 1. Create Document
+```http
+POST /documents
+```
+
+Request Body:
+```json
+{
+  "title": "My First Document",
+  "content": "This is the content in Banglish or Bangla",
+  "language": "banglish",
+  "auto_translate": true
+}
+```
+
+Response:
+```json
+{
+  "status": "success",
+  "data": {
+    "document_id": "doc_123",
+    "title": "My First Document",
+    "content": {
+      "original": "This is the content in Banglish or Bangla",
+      "translated": "এটি বাংলিশ বা বাংলায় বিষয়বস্তু"
+    },
+    "created_at": "2025-01-03T12:00:00Z"
+  }
+}
+```
+
+##### 2. Export Document
+```http
+GET /documents/{document_id}/export
+```
+
+Query Parameters:
+- `format`: pdf, docx (default: pdf)
+- `font`: Optional custom Bangla font name
+
+Response: Binary file stream
+
+#### Search API
+
+##### 1. Universal Search
+```http
+GET /search
+```
+
+Query Parameters:
+- `q`: Search query (Banglish or Bangla)
+- `type`: content, users, all (default: all)
+- `page`: Page number (default: 1)
+- `limit`: Results per page (default: 10)
+
+Response:
+```json
+{
+  "status": "success",
+  "data": {
+    "results": [
+      {
+        "type": "content",
+        "id": "content_123",
+        "title": "Sample Content",
+        "snippet": "Matching content excerpt...",
+        "relevance_score": 0.95
+      }
+    ],
+    "pagination": {
+      "current_page": 1,
+      "total_pages": 5,
+      "total_results": 48
+    }
+  }
+}
+```
+
+#### Error Responses
+
+All endpoints follow a consistent error response format:
+
+```json
+{
+  "status": "error",
+  "error": {
+    "code": "ERROR_CODE",
+    "message": "Human readable error message",
+    "details": {
+      // Additional error details if available
+    }
+  }
+}
+```
+
+Common Error Codes:
+- `INVALID_TOKEN`: Authentication token is invalid or expired
+- `INVALID_REQUEST`: Request body or parameters are invalid
+- `RATE_LIMIT_EXCEEDED`: API rate limit has been exceeded
+- `SERVICE_ERROR`: Internal service error
+- `RESOURCE_NOT_FOUND`: Requested resource does not exist
+
+### Rate Limits
+- Free tier: 100 requests per hour
+- Pro tier: 1000 requests per hour
+- Enterprise tier: Custom limits
+
+### Webhooks
+
+Register webhook endpoints to receive notifications for:
+- Translation completions
+- Document updates
+- Chatbot session events
+
+Webhook Registration:
+```http
+POST /webhooks
+```
+
+Request Body:
+```json
+{
+  "url": "https://your-domain.com/webhook",
+  "events": ["translation.complete", "document.update"],
+  "secret": "your_webhook_secret"
+}
+```
+
+### SDKs and Libraries
+
+Official SDKs are available for:
+- JavaScript/TypeScript
+- Python
+- Java
+- Ruby
+
+Example using JavaScript SDK:
+```javascript
+import { Banglish2Bangla } from 'banglish2bangla-sdk';
+
+const client = new Banglish2Bangla('your_api_key');
+
+// Translate text
+const result = await client.translate('ami tomake valobashi');
+console.log(result.translated_text);
+```
+
 ## **License**
 This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
 
