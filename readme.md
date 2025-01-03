@@ -53,14 +53,57 @@ The app's system architecture integrates multiple components to deliver high per
 
 ```mermaid
 graph TD
-    A[Client Layer] --> B[API Gateway]
-    B --> C[Translation Engine]
-    B --> D[Chatbot Service]
-    B --> E[Content Management]
-    C --> F[AI Models]
-    D --> F
-    E --> G[Database]
-    F --> G
+    subgraph Frontend["Frontend (React.js)"]
+        UI[User Interface]
+        LangInteg[LangChain Integration]
+    end
+
+    subgraph Backend["Backend (Node.js + Express)"]
+        API[API Endpoints]
+        TC[Database Controller]
+        GA[GroqAI Accelerator]
+    end
+
+    subgraph Database["Database (MongoDB)"]
+        UD[User Data]
+        CD[Content Data]
+        AD[Analytics Data]
+    end
+
+    subgraph LangChain["LangChain OpenAPI"]
+        WM[Workflow Manager]
+        TW[Translation Workflow]
+        CW[Chatbot Workflow]
+        FW[Feedback Workflow]
+    end
+
+    subgraph AIModels["AI Models"]
+        TM[Translation Model]
+        CM[Chatbot Model]
+    end
+
+    User((User)) --> UI
+    UI --> LangInteg
+    LangInteg --> API
+    API --> TC
+    API --> GA
+    TC --> UD
+    TC --> CD
+    TC --> AD
+    API --> WM
+    WM --> TW
+    WM --> CW
+    WM --> FW
+    TW --> TM
+    CW --> CM
+    GA --> TM
+    GA --> CM
+
+    style Frontend fill:#f9f9f9,stroke:#333,stroke-width:2px
+    style Backend fill:#f0f0f0,stroke:#333,stroke-width:2px
+    style Database fill:#e1e1e1,stroke:#333,stroke-width:2px
+    style LangChain fill:#f5f5f5,stroke:#333,stroke-width:2px
+    style AIModels fill:#f0f0f0,stroke:#333,stroke-width:2px
 ```
 
 ---
@@ -118,42 +161,166 @@ Access the app at http://localhost:3000
 ### Translation Workflow
 ```mermaid
 sequenceDiagram
-    User->>+App: Input Banglish Text
-    App->>+AI Model: Process Text
-    AI Model->>-App: Return Bangla Translation
-    App->>-User: Display Translation
+    actor User
+    participant F as Frontend
+    participant L as LangChain API
+    participant T as Translation Model
+    
+    User->>F: Enter Banglish Text
+    F->>L: Send Translation Request
+    L->>T: Process Text
+    T->>L: Return Bangla Text
+    L->>F: Deliver Translation
+    F->>User: Display Bangla Text
+
+    rect rgb(240, 240, 240)
+        Note over F,T: Translation process optimized<br/>with GroqAI acceleration
+    end
 ```
 
 ### Chatbot Query Handling
-The chatbot processes queries in both scripts and provides contextual responses through:
-- Natural Language Processing
-- Context Awareness
-- Learning from Interactions
+```mermaid
+sequenceDiagram
+    actor User
+    participant F as Frontend
+    participant L as LangChain API
+    participant C as Chatbot Model
+    participant D as Database
+    
+    User->>F: Submit Query
+    F->>L: Process Query
+    L->>C: Analyze Query
+    C->>D: Fetch Context
+    D->>C: Return Context
+    C->>L: Generate Response
+    L->>F: Send Response
+    F->>User: Display Answer
+
+    rect rgb(240, 240, 240)
+        Note over F,D: Bilingual support with<br/>context awareness
+    end
+```
+
+The chatbot leverages:
+- Advanced Natural Language Processing
+- Context-aware Response Generation
+- Continuous Learning from Interactions
 
 ### Authentication Flow
-Secure user authentication implemented with:
-- JWT Tokens
+```mermaid
+sequenceDiagram
+    actor User
+    participant LP as Login Page
+    participant API as Backend API
+    participant DB as Database
+    
+    User->>LP: Access Login/Register
+    LP->>API: Submit Credentials
+    API->>DB: Verify User Data
+    DB->>API: Return User Status
+    API->>LP: Send Auth Token
+    LP->>User: Grant Access
+
+    rect rgb(240, 240, 240)
+        Note over LP,API: Secured with JWT Tokens<br/>and Role-based Access
+    end
+```
+
+Key Security Features:
+- JWT Tokens for secure authentication
 - Role-based Access Control
-- Session Management
+- Session Management and Monitoring
 
 ### Content Management
-Users can:
-- Create and edit documents
-- Save drafts
-- Export as customized PDFs
-- Share content with others
+```mermaid
+flowchart TD
+    A[User Input] --> B{Content Type}
+    B -->|Document| C[Create/Edit]
+    B -->|Media| D[Upload]
+    C --> E[Auto-Save Draft]
+    D --> E
+    E --> F{Review}
+    F -->|Approve| G[Publish]
+    F -->|Edit| C
+    G --> H[Export Options]
+    H --> I[PDF Export]
+    H --> J[Share Content]
+    
+    style A fill:#f9f9f9
+    style G fill:#e1f5fe
+    style H fill:#e8f5e9
+```
+
+Content Features:
+- Document Creation and Editing
+- Automatic Draft Saving
+- PDF Export with Custom Styling
+- Content Sharing and Collaboration
 
 ### Search Functionality
-Advanced search capabilities include:
-- Cross-script search
-- Profile discovery
-- Content filtering
-- Smart suggestions
+```mermaid
+graph LR
+    subgraph Input
+        A[Search Query] --> B{Query Type}
+        B -->|Banglish| C[Script Detection]
+        B -->|Bangla| D[Direct Process]
+    end
+    
+    subgraph Processing
+        C --> E[Translation Layer]
+        E --> F[Search Engine]
+        D --> F
+        F --> G[MongoDB Query]
+    end
+    
+    subgraph Results
+        G --> H[Filter Results]
+        H --> I[Sort by Relevance]
+        I --> J[Return Results]
+    end
+
+    style A fill:#f0f0f0
+    style F fill:#e1e1e1
+    style J fill:#f5f5f5
+```
+
+Features:
+- Intelligent Cross-script Search
+- Smart Profile Discovery
+- Advanced Content Filtering
+- Context-aware Suggestions
 
 ### Feedback and Continuous Learning
-- User feedback collection
-- Admin verification process
-- Model retraining pipeline
+```mermaid
+graph TD
+    subgraph Collection
+        A[User Feedback] --> B[Feedback Queue]
+        B --> C{Admin Review}
+    end
+    
+    subgraph Verification
+        C -->|Approve| D[Verified Feedback]
+        C -->|Reject| E[Rejection Notice]
+        D --> F[Training Dataset]
+    end
+    
+    subgraph Learning
+        F --> G[Model Retraining]
+        G --> H[Validation]
+        H -->|Success| I[Deploy Update]
+        H -->|Fail| G
+    end
+
+    style A fill:#f0f0f0
+    style D fill:#e1f5fe
+    style I fill:#e8f5e9
+```
+
+Process Overview:
+- Systematic Feedback Collection
+- Admin-driven Quality Control
+- Continuous Model Improvement
+- Validated Updates Deployment
 
 ---
 
