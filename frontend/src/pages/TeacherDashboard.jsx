@@ -1,8 +1,12 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef,useContext } from "react";
 import axios from "axios";
 import toast from "react-hot-toast";
 import Quill from "quill";
 import "quill/dist/quill.snow.css"; // Import Quill styles
+import { Context } from "../context/AuthContext";
+import { useNavigate } from "react-router-dom";
+
+
 
 const TeacherDashboard = () => {
   const [title, setTitle] = useState("");
@@ -12,6 +16,16 @@ const TeacherDashboard = () => {
   const [transcript, setTranscript] = useState("");
   const quillRef = useRef(null); // Ref for Quill editor
   const mediaRecorderRef = useRef(null); // Ref for media recorder
+  const { user } = useContext(Context);
+  const navigate = useNavigate(); // For navigation
+
+
+  useEffect(() => {
+    if (!user || user.role !== "Teacher") {
+      toast.error("Access denied. Teachers only!");
+      navigate("/"); // Redirect to the home page or login page
+    }
+  }, [user, navigate]);
 
   // Fetch teacher's stories
   const fetchStories = async () => {

@@ -2,7 +2,7 @@ import React, { useState, useContext } from "react";
 import axios from "axios";
 import toast from "react-hot-toast";
 import { Context } from "../context/AuthContext.jsx";
-import { Navigate } from "react-router-dom";
+import { Navigate, useNavigate } from "react-router-dom";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -11,6 +11,7 @@ const Login = () => {
   const [errors, setErrors] = useState({});
 
   const { isAuthorized, setIsAuthorized, setUser } = useContext(Context);
+  const navigate = useNavigate(); // For navigation
 
   const validateForm = () => {
     const newErrors = {};
@@ -44,6 +45,13 @@ const Login = () => {
       toast.success(data.message || "Logged in successfully");
       setUser(data.user);
       setIsAuthorized(true);
+
+      // Navigate to respective dashboard based on role
+      if (data.user.role === "Teacher") {
+        navigate("/teacher-dashboard");
+      } else if (data.user.role === "Student") {
+        navigate("/student-dashboard");
+      }
     } catch (error) {
       const errorMessage = error.response?.data?.message;
       toast.error(errorMessage || "Login failed");
