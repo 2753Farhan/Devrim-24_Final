@@ -6,10 +6,12 @@ import "quill/dist/quill.snow.css"; // Import Quill styles
 
 const TeacherDashboard = () => {
   const [title, setTitle] = useState("");
-  const [content, setContent] = useState("");
   const [stories, setStories] = useState([]);
-
+  const [isRecording, setIsRecording] = useState(false);
+  const [audioBlob, setAudioBlob] = useState(null);
+  const [transcript, setTranscript] = useState('');
   const quillRef = useRef(null); // Ref for Quill editor
+  const mediaRecorderRef = useRef(null); // Ref for media recorder
 
   // Fetch teacher's stories
   const fetchStories = async () => {
@@ -23,14 +25,12 @@ const TeacherDashboard = () => {
     }
   };
 
-  // Handle adding a new story
-  const handleAddStory = async (e) => {
+  // Handle story submission (from Quill editor or voice-to-text)
+  const handleSaveStory = async (e) => {
     e.preventDefault();
+    const content = quillRef.current?.root.innerHTML || transcript; // Use Quill content or transcript from voice
 
-    // Get the content from Quill editor
-    const storyContent = quillRef.current?.root.innerHTML || "";
-
-    if (!storyContent.trim()) {
+    if (!content.trim()) {
       toast.error("Content cannot be empty.");
       return;
     }
@@ -38,15 +38,73 @@ const TeacherDashboard = () => {
     try {
       const { data } = await axios.post(
         `${import.meta.env.VITE_BACKEND_URL}/api/story/add`,
-        { title, content: storyContent },
+        { title, content },
         { withCredentials: true }
       );
       toast.success(data.message);
       setTitle("");
       quillRef.current.root.innerHTML = ""; // Clear the editor
+      setTranscript(''); // Clear transcript
       fetchStories(); // Refresh the stories list
     } catch (error) {
       toast.error(error.response?.data?.message || "Failed to add story");
+    }
+  };
+
+  // Handle voice recording
+  const startRecording = () => {
+    setIsRecording(true);
+    navigator.mediaDevices
+      .getUserMedia({ audio: true })
+      .then((stream) => {
+        const mediaRecorder = new MediaRecorder(stream);
+        mediaRecorder.start();
+
+        mediaRecorderRef.current = mediaRecorder;
+
+        const chunks = [];
+        mediaRecorder.ondataavailable = (e) => chunks.push(e.data);
+        mediaRecorder.onstop = () => {
+          const audioBlob = new Blob(chunks, { type: "audio/wav" });
+          setAudioBlob(audioBlob);
+          setIsRecording(false);
+          handleVoiceToText(audioBlob); // Process the voice input after stopping
+        };
+      })
+      .catch((err) => {
+        toast.error("Error starting voice recording: " + err.message);
+      });
+  };
+
+  // Stop recording
+  const stopRecording = () => {
+    if (mediaRecorderRef.current) {
+      mediaRecorderRef.current.stop();
+    }
+  };
+
+  // Convert audio to text using backend API
+  const handleVoiceToText = async (audioBlob) => {
+    if (!audioBlob) {
+      toast.error("No audio recorded.");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("audio", audioBlob);
+
+    try {
+      const { data } = await axios.post(
+        `${import.meta.env.VITE_BACKEND_URL}/api/story/voice`,
+        formData,
+        { headers: { "Content-Type": "multipart/form-data" }, withCredentials: true }
+      );
+      setTranscript(data.transcription); // Set the transcription text
+      quillRef.current.root.innerHTML = data.transcription; // Optionally populate the editor with transcribed text
+      toast.success("Voice transcription successful!");
+      fetchStories(); // Refresh the stories list
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Failed to transcribe voice");
     }
   };
 
@@ -82,8 +140,9 @@ const TeacherDashboard = () => {
   return (
     <div className="container mx-auto py-10">
       <h1 className="text-3xl font-bold text-center mb-6">Teacher Dashboard</h1>
+
       {/* Story Writing Section */}
-      <form onSubmit={handleAddStory} className="mb-8">
+      <form onSubmit={handleSaveStory} className="mb-8">
         <h2 className="text-2xl font-bold mb-4">Write a Story</h2>
         <input
           type="text"
@@ -108,7 +167,26 @@ const TeacherDashboard = () => {
         </button>
       </form>
 
-      {/* Story List */}
+      {/* Voice Recording Section */}
+      <div className="mb-8">
+        {!isRecording ? (
+          <button
+            onClick={startRecording}
+            className="bg-green-500 text-white p-2 rounded mr-4"
+          >
+            Start Recording
+          </button>
+        ) : (
+          <button
+            onClick={stopRecording}
+            className="bg-red-500 text-white p-2 rounded mr-4"
+          >
+            Stop Recording
+          </button>
+        )}
+      </div>
+
+      {/* Display Uploaded Stories */}
       <h2 className="text-2xl font-bold mb-4">Your Stories</h2>
       {stories.length > 0 ? (
         <ul className="space-y-4">
