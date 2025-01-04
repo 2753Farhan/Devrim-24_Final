@@ -11,6 +11,7 @@ import ResetPassword from "./pages/ResetPassword.jsx";
 import Profile from "./pages/Profile.jsx";
 import TeacherDashboard from "./pages/TeacherDashboard.jsx";
 import './App.css'
+import StudentDashboard from "./pages/studentDashboard.jsx";
 const App = () => {
   const { isAuthorized } = useContext(Context);
 
@@ -27,6 +28,7 @@ const App = () => {
             <Route path="/" element={isAuthorized ? <Home /> : <Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/teacher-dashboard" element={<TeacherDashboard />} />
+            <Route path="/student-dashboard" element={<StudentDashboard />} />
             <Route path="/login" element={<Login />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password/:id/:token" element={<ResetPassword />} />

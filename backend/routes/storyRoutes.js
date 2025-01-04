@@ -4,6 +4,7 @@ import { isAuthenticated } from "../middleware/auth.js";
 import { handleVoiceChat } from "../controllers/voiceToTextController.js";
 import { generateTitle } from "../controllers/titleController.js";
 import multer from "multer";
+import { getAllStories } from "../controllers/storyController.js";
 
 const upload = multer({ dest: "uploads/" });
 const router = express.Router();
@@ -15,5 +16,6 @@ router.post("/add", isAuthenticated, addStory);
 router.get("/my-stories", isAuthenticated, getTeacherStories);
 router.post("/voice", upload.single("audio"), handleVoiceChat);
 router.post("/generate-title", generateTitle);
+router.get("/stories", getAllStories);
 
 export default router;
