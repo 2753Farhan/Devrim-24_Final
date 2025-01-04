@@ -1,3 +1,17 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+.prose {
+  max-width: 65ch;
+  color: inherit;
+}
+
+.ql-container {
+  min-height: 200px;
+}
+
+/* Quill editor styles */
+.ql-editor {
+  min-height: 200px;
+}

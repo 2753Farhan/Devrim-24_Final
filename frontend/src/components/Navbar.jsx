@@ -10,7 +10,7 @@ const Navbar = () => {
       <div className="container mx-auto flex justify-between items-center py-4 px-6">
         {/* Logo */}
         <Link to="/" className="text-lg font-bold">
-          RecruitEase
+          LinguaMagic
         </Link>
 
         {/* Navigation Links */}
