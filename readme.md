@@ -1,4 +1,4 @@
-# **Banglish to Bangla Conversion App**
+# **LinguaMagic - Banglish to Bangla Conversion App**
 
 ### Empowering seamless communication and cultural preservation through advanced language translation.
 
